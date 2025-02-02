@@ -133,10 +133,22 @@ convert-windows-dir() {
     echo $1 | sed 's/C:/\/mnt\/c/' | sed 's/\\/\//g'
 }
 
+DEV_HOME=$(convert-windows-dir "C:/Dev")
+USER_DIR=$(convert-windows-dir "C:/Users/$(whoami)")
+
+# if user dir does not exist, remove the last s from the path
+if [ ! -d $USER_DIR ]; then
+    USER_DIR=$(convert-windows-dir "C:/Users/$(whoami | sed 's/s$//')")
+fi
+
 # ------------------
 # Aliases
 # ------------------
 alias cls=clear
 alias git='"$(convert-windows-dir "C:/Program Files/Git/bin/git.exe")"'
 
-echo "hello from git"
+# ------------------
+# Default behavior
+# ------------------
+cd $DEV_HOME
+echo "zsh started"
