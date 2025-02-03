@@ -228,7 +228,7 @@ if [ ! -d $USER_DIR ]; then
     USER_DIR=$(convert-windows-dir "C:/Users/$(whoami | sed 's/s$//')")
 fi
 
-STARTUP_DIR=$(pwd | grep -i "/dev") #if PWD contains /dev, set it as default
+STARTUP_DIR=DEV_HOME #$(pwd | grep -i "/dev") #if PWD contains /dev, set it as default
 if [ -z "$STARTUP_DIR" ]; then
     STARTUP_DIR=DEV_HOME
 fi
