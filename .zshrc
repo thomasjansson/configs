@@ -228,6 +228,11 @@ if [ ! -d $USER_DIR ]; then
     USER_DIR=$(convert-windows-dir "C:/Users/$(whoami | sed 's/s$//')")
 fi
 
+STARTUP_DIR=$(pwd | grep -i "/dev") #if PWD contains /dev, set it as default
+if [ -z "$STARTUP_DIR" ]; then
+    STARTUP_DIR=DEV_HOME
+fi
+
 # ------------------
 # Aliases
 # ------------------
@@ -237,5 +242,5 @@ alias git='"$(convert-windows-dir "C:/Program Files/Git/bin/git.exe")"'
 # ------------------
 # Default behavior
 # ------------------
-cd $DEV_HOME
-echo "zsh started"
+cd $STARTUP_DIR
+echo "default .zshrc executed"
