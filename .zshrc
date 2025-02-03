@@ -99,9 +99,96 @@ source $ZSH/oh-my-zsh.sh
 # - $ZSH_CUSTOM/macos.zsh
 # For a full list of active aliases, run `alias`.
 #
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
+
+alias open=open_impl
+alias cls=clear
+alias cd..='cd ..'
+alias start='cmd.exe /C start'
+alias devops="start $(git config --get remote.origin.url | awk -F '_git' '{print $1}')"
+alias explorer='pwsh.exe -c start -FilePath .'
+alias hosts="code c:/Windows/System32/drivers/etc/hosts"
+alias workspace=workspace_find
+alias master='git checkout master ; git pull'
+
+checkout() {
+  local branch
+  local input="$1"
+
+  if [ -n "$input" ]; then
+    # Find the first branch that matches the input argument
+    branch=$(git branch -a | awk '{print $1}' | grep -m 1 "$input")
+  else
+    #        All branches  | Strip whitespace | Select branch and preview log
+    branch=$(git branch -a | awk '{print $1}' | fzf --preview 'git log --oneline --graph --decorate --color=always $(echo {} | sed "s/.* //")')
+  fi
+
+  if [ -n "$branch" ]; then
+    # if branch starts with remotes/origin/, replace it
+    if [[ $branch == remotes/origin/* ]]; then
+      branch=$(echo "$branch" | sed 's/remotes\/origin\///')
+    fi
+
+    git checkout "$(echo "$branch" | sed 's/.* //')"
+  fi
+}
+
+# --------------------------------------------
+# Workspace implementation  
+# --------------------------------------------
+# Function to normalize strings by removing non-alphanumeric characters and converting to lowercase
+normalize() {
+    echo "$1" | tr -cd '[:alnum:]' | tr '[:upper:]' '[:lower:]'
+}
+
+# Function to find and open the nearest sub-directory
+workspace_find() {
+    if [ "$#" -ne 1 ]; then
+        echo "Usage: open_matching_subdir target"
+        return 1
+    fi
+
+    local target
+    target=$(normalize "$1")
+    local shortest_dir=""
+    local shortest_length=-1
+
+    for dir in "$DEV_ROOT"/*/; do
+        dir=${dir%/}  # Remove trailing slash
+        normalized_dir=$(normalize "$dir")
+
+        if [[ "$normalized_dir" == *"$target"* ]]; then
+            dir_length=${#dir}
+            if [ "$shortest_length" -eq -1 ] || [ "$dir_length" -lt "$shortest_length" ]; then
+                shortest_length="$dir_length"
+                shortest_dir="$dir"
+            fi
+        fi
+    done
+
+    if [ -n "$shortest_dir" ]; then
+        cd "$shortest_dir" || return
+        echo "Opened workspace: $shortest_dir"
+        
+        # Find potential .sln file in dir
+        local sln_file
+        sln_file=$(find . -maxdepth 1 -type f -name "*.sln" | head -n 1)
+        # open using ps if found
+        if [ -n "$sln_file" ]; then
+            ps "$sln_file"
+        fi
+    else
+        echo "No matching sub-directories found."
+    fi
+}
+
+# Casing
+setopt nocaseglob
+autoload -Uz compinit && compinit
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+
+# Escape to clear line, laggy but works
+bindkey '^[' kill-whole-line
+
 
 # ------------------
 # History
