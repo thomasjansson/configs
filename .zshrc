@@ -69,7 +69,7 @@ find_git_exe() {
     return 1
 }
 
-alias git="$(find-git-exe)"
+alias git="$(find_git_exe)"
 
 checkout() {
   local branch
