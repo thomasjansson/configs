@@ -40,6 +40,36 @@ ZSH_THEME="robbyrussell"
 plugins=(git)
 source $ZSH/oh-my-zsh.sh
 
+find_git_exe() {
+    # Define potential paths for git.exe
+    local paths=(
+        "/mnt/c/Program Files/Git/bin/git.exe"
+        "/mnt/c/Users/$USER/AppData/Local/Programs/Git/cmd/git.exe"
+    )
+
+    # Check each path
+    for path in "${paths[@]}"; do
+        if [ -x "$path" ]; then
+            echo "$path"
+            return 0
+        fi
+    done
+
+    # If not found, try to locate it under all users' AppData
+    for user_dir in /mnt/c/Users/*; do
+        local user_git="$user_dir/AppData/Local/Programs/Git/cmd/git.exe"
+        if [ -x "$user_git" ]; then
+            echo "$user_git"
+            return 0
+        fi
+    done
+
+    # If git.exe is not found
+    echo "git.exe not found"
+    return 1
+}
+
+alias git="$(find-git-exe)"
 
 checkout() {
   local branch
@@ -169,7 +199,6 @@ fi
 # Aliases
 # ------------------
 alias cls=clear
-alias git='"$(convert-windows-dir "C:/Program Files/Git/bin/git.exe")"'
 alias cd..='cd ..'
 alias start='cmd.exe /C start'
 alias devops="start $(git config --get remote.origin.url | awk -F '_git' '{print $1}')"
